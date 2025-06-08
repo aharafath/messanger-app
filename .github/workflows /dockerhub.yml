@@ -1,0 +1,48 @@
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Backend tag generate
+      - name: Extract Backend Metadata
+        id: backend-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: arafath420/messanger-back
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      # Build and Push Backend
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./msgr-back
+          push: true
+          tags: ${{ steps.backend-meta.outputs.tags }}
+
+      # Frontend tag generate
+      - name: Extract Frontend Metadata
+        id: frontend-meta
+        uses: docker/metadata-action@v4
+        with:
+          images: arafath420/messanger-front
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      # Build and Push Frontend
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./msgr-front
+          push: true
+          tags: ${{ steps.frontend-meta.outputs.tags }}
