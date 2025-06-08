@@ -17,15 +17,13 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: arafath420/messanger-back
-          tags: |
-            type=raw,value=latest
-            type=sha
 
       # Build and Push Backend
       - name: Build and Push Backend Image
         uses: docker/build-push-action@v4
         with:
           context: ./msgr-back
+          file: ./msgr-back/Dockerfile
           push: true
           tags: ${{ steps.backend-meta.outputs.tags }}
 
@@ -35,14 +33,12 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: arafath420/messanger-front
-          tags: |
-            type=raw,value=latest
-            type=sha
 
       # Build and Push Frontend
       - name: Build and Push Frontend Image
         uses: docker/build-push-action@v4
         with:
           context: ./msgr-front
+          file: ./msgr-front/Dockerfile
           push: true
           tags: ${{ steps.frontend-meta.outputs.tags }}
