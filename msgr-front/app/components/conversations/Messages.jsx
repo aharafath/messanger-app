@@ -12,15 +12,19 @@ import Link from "next/link";
 import { use, useEffect, useRef, useState } from "react";
 
 const Messages = ({ userId }) => {
+  const messagesEndRef = useRef(null);
+
   const [message, setMessages] = useState([]);
 
   const { data } = useSession();
 
   const socketRef = useSocket({
     listeners: {
-      message: (msg) => setMessages((prev) => [...prev, msg]),
-      activeUsers: (activeUsers) => {
-        console.log("Active users:", activeUsers);
+      message: (msg) => {
+        //Check message sender
+        if (msg.sender?._id == userId) {
+          setMessages((prev) => [...prev, msg]);
+        }
       },
     },
   });
@@ -40,11 +44,12 @@ const Messages = ({ userId }) => {
     }
   }, [data, socketRef]);
 
-  const messagesEndRef = useRef(null);
-
   const [sendMessage, { isLoading }] = useSendMessageMutation();
-  const { isLoading: getMessageLoading, data: messages } =
-    useGetAllSingleUserMessageQuery(userId);
+  const {
+    isLoading: getMessageLoading,
+    data: messages,
+    refetch,
+  } = useGetAllSingleUserMessageQuery(userId);
 
   const { data: userData, isLoading: userLoading } =
     useGetSingleUserQuery(userId);
@@ -66,7 +71,7 @@ const Messages = ({ userId }) => {
         console.log("Message sent successfully:", res?.data);
 
         // Send message to socket server
-        sendMessageToSocket(res?.data);
+        sendMessageToSocket({ ...res?.data, receiverId: userId });
 
         // Update local messages state
         setMessages((prev) => [
@@ -94,14 +99,27 @@ const Messages = ({ userId }) => {
       // Update local messages state with fetched messages
       setMessages(messages);
       // Scroll to the bottom when new messages are loaded
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      messagesEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
     }
   }, [getMessageLoading, messages]);
 
   useEffect(() => {
+    // refetch();
     // Scroll to the bottom on load
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
   }, []);
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [message]);
 
   return (
     <>

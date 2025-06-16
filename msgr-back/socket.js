@@ -28,10 +28,16 @@ export default function socketServer(server, origin = "*") {
 
     // Handle incoming messages
     socket.on("message", (msg) => {
-      console.log("Message received from client:", msg);
+      // console.log("Message received from client:", msg.receiverId);
 
-      // Broadcast the message to all connected clients
-      socketIo.emit("message", msg);
+      // console.log("Active users:", activeUsers);
+
+      const receiver = activeUsers.find(
+        (user) => user.userId === msg.receiverId
+      );
+      if (receiver) {
+        socketIo.to(receiver.socketId).emit("message", msg);
+      }
     });
 
     // Handle disconnection
