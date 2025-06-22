@@ -1,6 +1,6 @@
+import Messages from "@/app/components/conversations/Messages";
+import Sidebar from "@/app/components/conversations/Sidebar";
 import React from "react";
-import Sidebar from "../components/conversations/Sidebar";
-import Messages from "../components/conversations/Messages";
 
 const Messenges = ({ params }) => {
   const { userId } = React.use(params);

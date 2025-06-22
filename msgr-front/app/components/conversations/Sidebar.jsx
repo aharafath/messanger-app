@@ -62,7 +62,7 @@ const Sidebar = () => {
                 key={conversation._id}
                 className="p-3 bg-white/5 rounded-lg hover:bg-indigo-500/20 cursor-pointer"
               >
-                <Link href={`/${otherParticipant?._id}`}>
+                <Link href={`/messages/${otherParticipant?._id}`}>
                   <div className="flex items-center gap-3">
                     <div>
                       <Image
