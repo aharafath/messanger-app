@@ -153,8 +153,8 @@ const Messages = ({ userId }) => {
                   ? userData?.profilePhoto
                   : "/images/useravatar.png"
               }
-              height={50}
-              width={50}
+              height={40}
+              width={40}
               alt="UserAvatar"
             />
           </div>
@@ -172,8 +172,8 @@ const Messages = ({ userId }) => {
                     <Image
                       className="rounded-full"
                       src={"/images/useravatar.png"}
-                      height={50}
-                      width={50}
+                      height={40}
+                      width={40}
                       alt="UserAvatar"
                     />
                   </div>
@@ -198,8 +198,8 @@ const Messages = ({ userId }) => {
                   <Image
                     className="rounded-full h-[40px] w-[40px] object-cover object-top"
                     src={msg?.sender?.profilePhoto || "/images/useravatar.png"}
-                    height={50}
-                    width={50}
+                    height={40}
+                    width={40}
                     alt="UserAvatar"
                   />
                 </div>

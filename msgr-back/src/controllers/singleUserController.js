@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import User from "../models/User.js";
 import { cloudDelete, cloudUpload } from "../utils/cloudinary.js";
 import { findPublicIdWithFolder } from "../helpers/helpers.js";
+import jwt from "jsonwebtoken";
+import { isUserAvailableForDonation } from "../utils/utils.js";
 
 /**
  * @DESC Get All User
@@ -15,6 +17,48 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
   res.status(200).json(users);
 });
+
+/**
+ * @DESC Get All Users with Efficient Filtering
+ * @ROUTE /api/v1/user/all-users-for-blood
+ * @method GET
+ * @access public
+ */
+export const getAllUsersForBlood = asyncHandler(async (req, res) => {
+  const { bloodGroup, division, district, upazila, available } = req.query;
+  // Step 1: Build MongoDB filters (excluding availability)
+  const mongoFilters = {};
+
+  if (bloodGroup) mongoFilters.bloodGroup = bloodGroup;
+  if (division) mongoFilters.division = division;
+  if (district) mongoFilters.district = district;
+  if (upazila) mongoFilters.upazila = upazila;
+
+  // Step 2: Fetch filtered users from DB (much smaller result set)
+  const users = await User.find(mongoFilters).select("-password");
+
+  const filteredUsers = users
+    .map((user) => {
+      const availableForDonation = isUserAvailableForDonation(
+        user.dob,
+        user.lastDonation
+      );
+
+      return {
+        ...user.toObject(),
+        availableForDonation,
+      };
+    })
+    .filter((user) => {
+      if (available === "Available") return user.availableForDonation === true;
+      if (available === "Not available")
+        return user.availableForDonation === false;
+      return true;
+    });
+
+  res.status(200).json(filteredUsers);
+});
+
 /**
  * @DESC Get Single User
  * @ROUTE /api/v1/user/:id
@@ -24,13 +68,22 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 export const getSingleUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const user = await User.findById(id).select("-password").populate("role");
+  const user = await User.findById(id)
+    .select("-password")
+    .populate("role")
+    .lean();
 
   if (!user) {
     return res.status(404).json({ message: "User not found" });
   }
 
-  res.status(200).json(user);
+  const availableForDonation = isUserAvailableForDonation(
+    user.dob,
+    user.lastDonation
+  );
+
+  res.status(200).json({ ...user, availableForDonation });
+  // res.status(200).json({ ...user, availableForDonation });
 });
 
 /**
@@ -76,9 +129,7 @@ export const updateUser = asyncHandler(async (req, res) => {
       .json({ message: "You can only update your own account" });
   }
 
-  const { name, email } = req.body;
-
-  console.log("Update User Request Body:", email);
+  const bodyData = req.body;
 
   const file = req.file;
 
@@ -106,12 +157,73 @@ export const updateUser = asyncHandler(async (req, res) => {
       return res.status(500).json({ message: "Error uploading profile photo" });
     }
   }
-  user.name = name || user.name;
-  user.email = email || user.email;
+
+  Object.assign(user, bodyData);
+
+  // user.availableForDonation =
+  //   bodyData.dob > "2007-01-01" && bodyData.lastDonation > "2025-3-1"
+  //     ? true
+  //     : false;
 
   await user.save();
 
   res.status(200).json({ message: "User updated successfully", user });
+});
+
+/**
+ * @DESC Update User Email
+ * @ROUTE /api/v1/user/:id/email
+ * @method PUT
+ * @access private
+ */
+export const updateUserEmail = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { email, password } = req.body;
+
+  // Ensure the user can only update their own email
+  if (req.me._id.toString() !== id) {
+    return res
+      .status(403)
+      .json({ message: "You can only update your own email" });
+  }
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+  const user = await User.findById(id);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ message: "Password is incorrect" });
+  }
+  // Check if the new email is already in use
+  const existingUser = await User.find({ email });
+  if (existingUser.length > 0) {
+    return res.status(400).json({ message: "Email is already in use" });
+  }
+  user.email = email;
+  await user.save();
+
+  // create access token
+  const token = jwt.sign(
+    { email: user.email },
+    process.env.ACCESS_TOKEN_SECRET,
+    {
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN,
+    }
+  );
+
+  res.cookie("accessToken", token, {
+    httpOnly: true,
+    secure: process.env.APP_ENV == "Development" ? false : true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+
+  res.status(200).json({ message: "Email updated successfully", user });
 });
 
 /**
@@ -152,7 +264,9 @@ export const updateUserPassword = asyncHandler(async (req, res) => {
   user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
 
-  res.status(200).json({ message: "Password updated successfully" });
+  res
+    .status(200)
+    .json({ message: "Password updated successfully", success: true });
 });
 
 /**

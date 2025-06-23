@@ -24,6 +24,57 @@ const userSchema = mongoose.Schema(
       default: null,
     },
 
+    phone: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+
+    publishYourPhone: {
+      type: String,
+      enum: ["yes", "no"],
+      default: "yes",
+    },
+
+    bloodGroup: {
+      type: String,
+      enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"],
+      default: "Unknown",
+    },
+    division: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    district: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    upazila: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    lastDonation: {
+      type: Date,
+      default: null,
+    },
+    dob: {
+      type: Date,
+      default: null,
+    },
+
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+    },
+
+    donationCount: {
+      type: Number,
+      default: 0,
+    },
+
     role: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",

@@ -11,7 +11,10 @@ export async function middleware(req) {
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico") ||
-    pathname.startsWith("/api")
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/about") ||
+    pathname.startsWith("/contact") ||
+    pathname === "/"
   ) {
     return NextResponse.next();
   }

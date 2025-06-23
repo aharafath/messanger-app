@@ -16,18 +16,19 @@ const Sidebar = () => {
         <div className="flex items-center gap-2">
           <Link href="/profile">
             <Image
-              className="rounded-full"
+              className="rounded-full h-[40px] w-[40px] object-cover object-top"
               src={"/images/useravatar.png"}
-              height={30}
-              width={30}
+              height={40}
+              width={40}
               alt="UserAvatar"
             />
           </Link>
           <Link href="/add-user">
             <Image
+              className="rounded-full h-[40px] w-[40px] object-cover object-top"
               src={"/images/adduser.png"}
-              height={30}
-              width={30}
+              height={40}
+              width={40}
               alt="AddUser"
             />
           </Link>
@@ -71,8 +72,8 @@ const Sidebar = () => {
                           otherParticipant?.profilePhoto ||
                           "/images/useravatar.png"
                         }
-                        height={50}
-                        width={50}
+                        height={40}
+                        width={40}
                         alt="UserAvatar"
                       />
                     </div>

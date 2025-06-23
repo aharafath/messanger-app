@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { FiMenu, FiX } from "react-icons/fi";
+import Image from "next/image";
 
 const Navbar = () => {
   const { data: session, status } = useSession();
@@ -24,17 +25,25 @@ const Navbar = () => {
 
   return (
     <header className="w-full fixed top-0 z-20 bg-gradient-to-r from-gray-900 via-purple-900 to-gray-800 text-white shadow-md">
-      <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+      <div className="mx-auto max-w-7xl px-6 py-4 grid-cols-2 grid md:grid-cols-3 items-center justify-between">
         {/* Logo */}
         <Link
           href="/"
-          className="text-2xl font-bold text-indigo-400 hover:text-indigo-300"
+          className="text-2xl gap-2 flex  items-center font-bold text-indigo-400 hover:text-indigo-300"
         >
-          MyApp
+          <div>
+            <Image
+              src="/images/header/logo.png"
+              width={30}
+              height={40}
+              alt="Logo"
+            />
+          </div>
+          <div className="-mb-3">BloodHub</div>
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-6 text-lg">
+        <nav className="hidden md:flex space-x-6 text-lg justify-center">
           {navLinks.map((link) => (
             <Link
               key={link.href}
@@ -47,16 +56,14 @@ const Navbar = () => {
         </nav>
 
         {/* Auth Buttons - Desktop */}
-        <div className="hidden md:flex items-center space-x-4">
-          {status === "loading" ? (
-            <span className="text-sm text-gray-300">Loading...</span>
-          ) : session?.user ? (
+        <div className="hidden md:flex items-center space-x-4 justify-end">
+          {session?.user ? (
             <>
               <Link
-                href="/dashboard"
+                href="/profile"
                 className="text-sm font-medium text-indigo-300 hover:underline"
               >
-                Dashboard
+                Profile
               </Link>
               <Link
                 href="/messages"
@@ -83,7 +90,7 @@ const Navbar = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden text-white text-2xl"
+          className="md:hidden text-white text-2xl flex justify-end"
           onClick={toggleMenu}
           aria-label="Toggle menu"
         >
@@ -110,11 +117,11 @@ const Navbar = () => {
           ) : session?.user ? (
             <>
               <Link
-                href="/dashboard"
+                href="/profile"
                 onClick={closeMenu}
                 className="block text-sm font-medium text-indigo-300 hover:underline"
               >
-                Dashboard
+                Profile
               </Link>
               <Link
                 href="/messages"
